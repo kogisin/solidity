@@ -929,8 +929,10 @@ void SMTEncoder::visitAddMulMod(FunctionCall const& _funCall)
 void SMTEncoder::visitWrapUnwrap(FunctionCall const& _funCall)
 {
 	auto const& args = _funCall.arguments();
-	solAssert(args.size() == 1, "");
-	defineExpr(_funCall, expr(*args.front()));
+	smtAssert(args.size() == 1, "Expected exactly one argument to wrap/unwrap");
+	auto const& funType = dynamic_cast<FunctionType const&>(*_funCall.expression().annotation().type);
+	auto const* argType = funType.parameterTypes().front();
+	defineExpr(_funCall, expr(*args.front(), argType));
 }
 
 void SMTEncoder::visitObjectCreation(FunctionCall const& _funCall)
@@ -1092,19 +1094,24 @@ void SMTEncoder::visitPublicGetter(FunctionCall const& _funCall)
 	}
 }
 
-bool SMTEncoder::shouldAnalyze(SourceUnit const& _source) const
+bool SMTEncoder::shouldEncode(ContractDefinition const& _contract) const
+{
+	return _contract.canBeDeployed();
+}
+
+bool SMTEncoder::shouldAnalyzeVerificationTargetsFor(SourceUnit const& _source) const
 {
 	return m_settings.contracts.isDefault() ||
 		m_settings.contracts.has(*_source.annotation().path);
 }
 
-bool SMTEncoder::shouldAnalyze(ContractDefinition const& _contract) const
+bool SMTEncoder::shouldAnalyzeVerificationTargetsFor(ContractDefinition const& _contract) const
 {
-	if (!_contract.canBeDeployed())
+	if (!shouldEncode(_contract))
 		return false;
 
 	return m_settings.contracts.isDefault() ||
-		m_settings.contracts.has(_contract.sourceUnitName());
+		m_settings.contracts.has(_contract.sourceUnitName(), _contract.name());
 }
 
 void SMTEncoder::visitTypeConversion(FunctionCall const& _funCall)

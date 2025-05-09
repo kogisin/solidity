@@ -1,9 +1,18 @@
-### 0.8.30 (unreleased)
+### 0.8.31 (unreleased)
 
 Language Features:
 
 
 Compiler Features:
+
+
+Bugfixes:
+
+
+### 0.8.30 (2025-05-07)
+
+Compiler Features:
+* EVM: Set default EVM Version to `prague`.
 * NatSpec: Capture Natspec documentation of `enum` values in the AST.
 
 
